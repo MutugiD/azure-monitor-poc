@@ -1,0 +1,92 @@
+{
+  "total": 6,
+  "passed": 5,
+  "failed": 1,
+  "success_rate": 83.33333333333334,
+  "results": [
+    {
+      "test": "Endpoint salesforceloghandler",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:31.047658",
+      "details": "Status: 200"
+    },
+    {
+      "test": "Endpoint mulesoftloghandler",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:32.470825",
+      "details": "Status: 200"
+    },
+    {
+      "test": "Endpoint universalloghandler",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.810702",
+      "details": "Status: 200"
+    },
+    {
+      "test": "Event Generation Salesforce Login",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.816152",
+      "details": "Event ID: 25a6b449"
+    },
+    {
+      "test": "Event Generation Salesforce API",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.817576",
+      "details": "Event ID: 966b76ef"
+    },
+    {
+      "test": "Event Generation Salesforce Data",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.817576",
+      "details": "Event ID: 5a8bbe65"
+    },
+    {
+      "test": "Event Generation MuleSoft Performance",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.818833",
+      "details": "Event ID: 13fbc023"
+    },
+    {
+      "test": "Event Generation MuleSoft Error",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.819403",
+      "details": "Event ID: c43fa9ec"
+    },
+    {
+      "test": "Event Generation MuleSoft Uptime",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:33.819403",
+      "details": "Event ID: de5ad70d"
+    },
+    {
+      "test": "Data Flow",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:45:46.169106",
+      "details": "Success rate: 100.0% (5/5)"
+    },
+    {
+      "test": "Performance Load",
+      "status": "FAIL",
+      "timestamp": "2025-06-07T16:46:15.055088",
+      "details": "Rate: 0.7 events/sec, Errors: 0"
+    },
+    {
+      "test": "Invalid JSON Handling",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:46:16.358709",
+      "details": "Correctly returned 400"
+    },
+    {
+      "test": "Empty Payload Handling",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:46:17.322601",
+      "details": "Status: 400"
+    },
+    {
+      "test": "Dashboard Test Data",
+      "status": "PASS",
+      "timestamp": "2025-06-07T16:46:34.412765",
+      "details": "Generated 8/8 events"
+    }
+  ]
+}

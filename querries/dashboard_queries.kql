@@ -1,0 +1,131 @@
+// ====================================
+// 1. API RESPONSE TIMES (Working)
+// ====================================
+union isfuzzy=true
+    (SalesforceEvent_CL
+     | where TimeGenerated > ago(24h)
+     | where isnotempty(responseTime_d)
+     | extend API_System = "Salesforce", ResponseTime = responseTime_d),
+    (MuleSoftPerformance_CL
+     | where TimeGenerated > ago(24h)
+     | where isnotempty(responseTime_d)
+     | extend API_System = "MuleSoft", ResponseTime = responseTime_d)
+| summarize AvgResponseTime = avg(ResponseTime) by API_System, bin(TimeGenerated, 1h)
+| render timechart
+
+// ====================================
+// 2. API ERROR RATES (Fixed)
+// ====================================
+union isfuzzy=true
+    (SalesforceEvent_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "Salesforce",
+              IsError = case(
+                  isnotempty(statusCode_d) and statusCode_d >= 400, 1,
+                  isnotempty(success_b) and success_b == false, 1,
+                  isnotempty(Success_b) and Success_b == false, 1,
+                  0
+              )),
+    (MuleSoftError_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft", IsError = 1),
+    (MuleSoftPerformance_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft",
+              IsError = case(
+                  isnotempty(statusCode_d) and statusCode_d >= 400, 1,
+                  0
+              ))
+| summarize TotalRequests = count(),
+           ErrorCount = sum(IsError),
+           ErrorRate = case(count() > 0, (sum(IsError) * 100.0) / count(), 0.0)
+  by API_System, bin(TimeGenerated, 1h)
+| render timechart
+
+// ====================================
+// 3. API REQUEST VOLUME (New Metric)
+// ====================================
+union isfuzzy=true
+    (SalesforceEvent_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "Salesforce"),
+    (MuleSoftPerformance_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft"),
+    (MuleSoftError_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft"),
+    (MuleSoftUptime_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft")
+| summarize RequestCount = count() by API_System, bin(TimeGenerated, 1h)
+| render timechart
+
+// ====================================
+// 4. API PERFORMANCE SUMMARY (Fixed)
+// ====================================
+union isfuzzy=true
+    (SalesforceEvent_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "Salesforce",
+              ResponseTime = case(isnotempty(responseTime_d), responseTime_d, 0.0),
+              IsError = case(
+                  isnotempty(statusCode_d) and statusCode_d >= 400, 1,
+                  isnotempty(success_b) and success_b == false, 1,
+                  0
+              )),
+    (MuleSoftPerformance_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft",
+              ResponseTime = case(isnotempty(responseTime_d), responseTime_d, 0.0),
+              IsError = case(
+                  isnotempty(statusCode_d) and statusCode_d >= 400, 1,
+                  0
+              ))
+| summarize
+    TotalRequests = count(),
+    AvgResponseTime = avg(ResponseTime),
+    MaxResponseTime = max(ResponseTime),
+    ErrorCount = countif(IsError == 1),
+    ErrorRate = case(count() > 0, (countif(IsError == 1) * 100.0) / count(), 0.0),
+    SuccessRate = case(count() > 0, (countif(IsError == 0) * 100.0) / count(), 100.0)
+  by API_System
+| project API_System, TotalRequests, AvgResponseTime, MaxResponseTime, ErrorCount, ErrorRate, SuccessRate
+
+// ====================================
+// 5. TOP API ENDPOINTS BY USAGE (Fixed)
+// ====================================
+union isfuzzy=true
+    (SalesforceEvent_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "Salesforce",
+              Endpoint = case(
+                  isnotempty(apiEndpoint_s), apiEndpoint_s,
+                  isnotempty(endpoint_s), endpoint_s,
+                  isnotempty(eventType_s), eventType_s,
+                  "Unknown"
+              )),
+    (MuleSoftPerformance_CL
+     | where TimeGenerated > ago(24h)
+     | extend API_System = "MuleSoft",
+              Endpoint = case(
+                  isnotempty(apiEndpoint_s), apiEndpoint_s,
+                  isnotempty(endpoint_s), endpoint_s,
+                  isnotempty(apiName_s), apiName_s,
+                  "Unknown"
+              ))
+| where Endpoint != "Unknown"
+| summarize RequestCount = count(),
+           AvgResponseTime = avg(case(isnotempty(responseTime_d), responseTime_d, 0.0))
+  by API_System, Endpoint
+| order by RequestCount desc
+| take 10
+
+// ====================================
+// BONUS: DATA FIELD CHECKER (Debug Query)
+// ====================================
+// Use this to see what fields actually exist in your data
+union isfuzzy=true SalesforceEvent_CL, MuleSoftPerformance_CL
+| where TimeGenerated > ago(1h)
+| take 1
+| project *
